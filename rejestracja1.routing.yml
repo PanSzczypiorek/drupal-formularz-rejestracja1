@@ -1,0 +1,7 @@
+rejestracja1.form:
+  path: '/rejestracja1'
+  defaults:
+    _form: '\Drupal\rejestracja1\src\Form\Rejestracja1Form.php'
+    _title: 'Rejestracja 1'
+  requirements:
+    _permission: 'access content'

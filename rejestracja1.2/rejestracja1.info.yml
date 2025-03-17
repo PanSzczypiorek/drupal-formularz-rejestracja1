@@ -1,0 +1,10 @@
+name: 'Rejestracja 1'
+type: module
+description: 'Modul do zabezpieczonego formularza.'
+core_version_requirement: ^10
+package: Custom
+libraries:
+  - rejestracja1/styles
+dependencies:
+  - drupal:captcha
+  - drupal:block

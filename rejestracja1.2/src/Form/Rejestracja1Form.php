@@ -135,28 +135,39 @@ class Rejestracja1Form extends FormBase {
    * Walidacja danych w formularzu.
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    if (!filter_var($form_state->getValue('email'), FILTER_VALIDATE_EMAIL)) {
+    if (trim($form_state->getValue('first_name')) === '') {
+      $form_state->setErrorByName('first_name', $this->t('Pole "Imię" jest wymagane.'));
+    }
+
+    if (trim($form_state->getValue('last_name')) === '') {
+      $form_state->setErrorByName('last_name', $this->t('Pole "Nazwisko" jest wymagane.'));
+    }
+
+    if (trim($form_state->getValue('dob')) === '') {
+      $form_state->setErrorByName('dob', $this->t('Pole "Data urodzenia" jest wymagane.'));
+    }
+
+    if (trim($form_state->getValue('fav_number')) === '') {
+      $form_state->setErrorByName('fav_number', $this->t('Pole "Ulubiona liczba" jest wymagane.'));
+    }
+
+    if (trim($form_state->getValue('email')) === '' || !filter_var($form_state->getValue('email'), FILTER_VALIDATE_EMAIL)) {
       $form_state->setErrorByName('email', $this->t('Proszę podać poprawny adres email.'));
     }
 
-    if (!preg_match('/^\+?[0-9]{9,15}$/', $form_state->getValue('phone'))) {
-      $form_state->setErrorByName('phone', $this->t('Proszę podać poprawny numer telefonu w formacie +48123456789.'));
+    if (trim($form_state->getValue('phone')) === '' || !preg_match('/^\+?[0-9]{9,15}$/', $form_state->getValue('phone'))) {
+      $form_state->setErrorByName('phone', $this->t('Proszę podać poprawny numer telefonu.'));
     }
 
-    if (!preg_match('/^\d{2}-\d{3}$/', $form_state->getValue('postal_code'))) {
-      $form_state->setErrorByName('postal_code', $this->t('Proszę podać poprawny kod pocztowy w formacie XX-XXX.'));
+    if (trim($form_state->getValue('postal_code')) === '' || !preg_match('/^\d{2}-\d{3}$/', $form_state->getValue('postal_code'))) {
+      $form_state->setErrorByName('postal_code', $this->t('Proszę podać poprawny kod pocztowy.'));
     }
 
-    $valid_regions = [
-      'dolnoslaskie', 'kujawsko-pomorskie', 'lubelskie', 'lubuskie', 'lodzkie',
-      'malopolskie', 'mazowieckie', 'opolskie', 'podkarpackie', 'podlaskie',
-      'pomorskie', 'slaskie', 'swietokrzyskie', 'warminsko-mazurskie',
-      'wielkopolskie', 'zachodniopomorskie',
-    ];
-    if (!in_array($form_state->getValue('region'), $valid_regions)) {
-      $form_state->setErrorByName('region', $this->t('Proszę wybrać województwo z listy.'));
+    if (trim($form_state->getValue('region')) === '') {
+      $form_state->setErrorByName('region', $this->t('Pole "Województwo" jest wymagane.'));
     }
   }
+
 
   /**
    * AJAX callback for CAPTCHA validation.
@@ -182,10 +193,17 @@ class Rejestracja1Form extends FormBase {
   public function ajaxSubmitCallback(array &$form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
 
-    // Dodaj komunikat o sukcesie.
+    // Sprawdzenie, czy są błędy walidacji.
+    if ($form_state->hasAnyErrors()) {
+      // Wyświetlenie błędów walidacji (domyślnie obsługiwanych przez Drupal).
+      $response->addCommand(new HtmlCommand('#form-messages-wrapper', '<div class="error-message">Proszę poprawić błędy w formularzu.</div>'));
+      return $response;
+    }
+
+    // Komunikat o sukcesie, gdy walidacja się powiedzie.
     $response->addCommand(new HtmlCommand('#form-messages-wrapper', '<div class="success-message">Formularz został przesłany!</div>'));
 
-    // Ręczne czyszczenie pól formularza.
+    // Ręczne resetowanie pól formularza.
     $form_state->setValue('first_name', '');
     $form_state->setValue('last_name', '');
     $form_state->setValue('dob', '');
@@ -195,12 +213,11 @@ class Rejestracja1Form extends FormBase {
     $form_state->setValue('postal_code', '');
     $form_state->setValue('region', '');
 
-    // Przebudowa formularza, aby zastosować zmiany.
+    // Przebudowa formularza, aby wyczyścić jego pola.
     $form_state->setRebuild(TRUE);
 
     return $response;
   }
-
   
   /**
    * Przetwarzanie danych po przesłaniu formularza.
